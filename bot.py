@@ -1,3 +1,36 @@
+#Bot de twitter per fer captura de pantalla al tweet citat
+#(english license below)
+#Copyright (C) 2019  Oriol Martí i Rodríguez
+
+#Aquest programa és lliure; el podeu redistribuir i/o modificar
+# d'acord amb els termes de la Llicència pública general de GNU tal 
+# i com la publica la Free Software Foundation; tant se val la versió 3
+# de la Llicència com (si ho preferiu) qualsevol versió posterior.
+
+
+#Aquest programa es distribueix amb l'esperança que serà útil, 
+#però SENSE CAP GARANTIA; ni tant sols amb la garantia de 
+#COMERCIALITZABILITAT O APTITUD PER A PROPÒSITS DETERMINATS.  Vegeu
+#la Llicència general pública de GNU per a més detalls. 
+
+
+#Hauríeu d'haver rebut una còpia de la llicència pública general 
+#de GNU amb aquest programa; si no, consulteu https://www.gnu.org/licenses/
+
+
+
+#This program is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+
+#This program is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import tweepy
 import webscreenshot
 import os
