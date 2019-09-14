@@ -1,9 +1,8 @@
 import tweepy
 import webscreenshot
 import os
+#Per executar el bot cal tenir un arxiu key.py que declari les quatre variables amb els tokens donats per Twitter
 from key import consumer_key, consumer_secret, access_token, access_token_secret
-
-ultima_id=None
 
 
 auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
@@ -11,37 +10,41 @@ auth.set_access_token(access_token,access_token_secret)
 
 api=tweepy.API(auth)
 
+def baixaIResponTweet(tweetABaixar, tweetARespondre):
+    #Fem la captura
+    ruta='./temp/'+tweetABaixar.id_str+'.png'
+    url="https://twitter.com/%s/status/%s"%(tweetABaixar.user.screen_name,tweetABaixar.id_str)
+    os.system('xvfb-run cutycapt --url=%s --min-width=600 --out=%s 2>&1 >/dev/null'%(url,ruta))
+    
+    try:
+        api.update_with_media(ruta,status='@%s'%tweetARespondre.user.screen_name,in_reply_to_status_id=tweetARespondre.id_str)
+    except Exception as e:
+        print(e)
+        print('No he pogut respondre al tweet')
+
+    os.remove(ruta)
+
 class ElMeuEscoltador(tweepy.StreamListener):
     def on_status(self, status):
         global api
-        #print(status.text)
+        if status.in_reply_to_status_id is None:
+            #Ni tan sols respon a ningú
+            api.update(status='@%s :('%status.user.screen_name,in_reply_to_status_id=status.id_str)
+            return
         status_replied=api.get_status(status.in_reply_to_status_id)
-        #print(status_replied.text)
-        try:
+        if status_replied.quoted_status_id is None:
+            if status_replied.in_reply_to_status_id is None:
+                #El tweet al que respon no cita ni respon a ningú. Com que hi ha respost, el veu, de manera que no cal captura
+                api.update(status='@%s :('%status.user.screen_name,in_reply_to_status_id=status.id_str)
+                return
+            citat=api.get_status(status_replied.in_reply_to_status_id)
+        else:
             citat=api.get_status(status_replied.quoted_status_id)
-        except:
-            pass
-        #print(citat.text)
-        
-        #Fem la captura
-        ruta='./temp/'+citat.id_str
-        os.mkdir(ruta)
-        url="https://twitter.com/%s/status/%s"%(citat.user.screen_name,citat.id)
-        os.system('webscreenshot %s -o %s'%(url,ruta))
+        baixaIResponTweet(citat,status)
 
-        _,_,arxius = next(os.walk(ruta))
-        print(arxius)
-        foto=ruta+'/'+arxius[0]
+    def on_direct_message(self,status):
+        print(status) #Falta implementar-ho. La idea és poder interactuar també per privat
         
-        print(status.id_str)
-        try:
-            api.update_with_media(foto,status='@%s'%status.user.screen_name,in_reply_to_status_id=status.id_str)
-        except Exception as e:
-            print(e)
-            print('No he pogut respondre al tweet')
-
-        os.remove(foto)
-        os.rmdir(ruta)
 
 
 

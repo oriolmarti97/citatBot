@@ -1,4 +1,7 @@
 key.py
+*.swp #Arxius d'intercanvi. Per si ho penjo al github amb el vim obert
+*.log #Els logs del bot, que no cal que siguin públics
+temp/
 
 #Lo de sota és merda generada pel github
 # Byte-compiled / optimized / DLL files
