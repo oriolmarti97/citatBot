@@ -64,6 +64,8 @@ def baixaIResponTweet(tweetABaixar, tweetARespondre):
 class ElMeuEscoltador(tweepy.StreamListener):
     def on_status(self, status):
         global api
+        #comprovem si el tweet és del bot
+        if status.user_screen_name=='CitatBot': return
         if status.in_reply_to_status_id is None:
             #Ni tan sols respon a ningú
             api.update(status='@%s :('%status.user.screen_name,in_reply_to_status_id=status.id_str)
