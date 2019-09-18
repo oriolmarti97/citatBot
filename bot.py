@@ -64,11 +64,13 @@ def baixaIResponTweet(tweetABaixar, tweetARespondre):
 class ElMeuEscoltador(tweepy.StreamListener):
     def on_status(self, status):
         global api
-        #comprovem si el tweet és del bot
-        if status.user_screen_name=='CitatBot': return
+        #Si té aquest atribut, vol dir que el tweet respon a gent no mencionada explícitament al tweet. Com que podria ser que el bot fos un d'ells, comprovem si ho és (si algú respon a un tweet del bot no hem de fer captura)
+        if hasattr(status,'display_text_range'):
+            if '@citatbot' not in status.text[status.display_text_range[0]:].lower():
+                return
         if status.in_reply_to_status_id is None:
             #Ni tan sols respon a ningú
-            api.update(status='@%s :('%status.user.screen_name,in_reply_to_status_id=status.id_str)
+            api.update(status='@%s Hola :D'%status.user.screen_name,in_reply_to_status_id=status.id_str)
             return
         status_replied=api.get_status(status.in_reply_to_status_id)
         if not hasattr(status_replied,'quoted_status_id') or status_replied.quoted_status_id is None:
