@@ -61,6 +61,9 @@ def baixaIResponTweet(tweetABaixar, tweetARespondre):
 
     os.remove(ruta)
 
+def respon_gatet(status):
+    api.update_with_media('gat trist.jpg',status='@%s :('%status.user.screen_name,in_reply_to_status_id=status.id_str)
+
 class ElMeuEscoltador(tweepy.StreamListener):
     def on_status(self, status):
         global api
@@ -72,15 +75,24 @@ class ElMeuEscoltador(tweepy.StreamListener):
             #Ni tan sols respon a ningú
             api.update_with_media('gat saludant.jpg',status='@%s Hola :D'%status.user.screen_name,in_reply_to_status_id=status.id_str)
             return
-        status_replied=api.get_status(status.in_reply_to_status_id)
+        try:
+            status_replied=api.get_status(status.in_reply_to_status_id)
+        except:
+            respon_gatet(status)
         if not hasattr(status_replied,'quoted_status_id') or status_replied.quoted_status_id is None:
             if not hasattr(status_replied,'in_reply_to_status_id') or status_replied.in_reply_to_status_id is None:
                 #El tweet al que respon no cita ni respon a ningú. Com que hi ha respost, el veu, de manera que no cal captura
-                api.update_with_media('gat trist',status='@%s :('%status.user.screen_name,in_reply_to_status_id=status.id_str)
+                respon_gatet(status)
                 return
-            citat=api.get_status(status_replied.in_reply_to_status_id)
+            try:
+                citat=api.get_status(status_replied.in_reply_to_status_id)
+            except:
+                respon_gatet(status)
         else:
-            citat=api.get_status(status_replied.quoted_status_id)
+            try:
+                citat=api.get_status(status_replied.quoted_status_id)
+            except:
+                respon_gatet(status)
         baixaIResponTweet(citat,status)
 
     def on_direct_message(self,status):
