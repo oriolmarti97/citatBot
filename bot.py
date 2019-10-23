@@ -43,6 +43,23 @@ auth.set_access_token(access_token,access_token_secret)
 
 api=tweepy.API(auth)
 
+def baixaIResponTweetB(idTweet, tweetARespondre):
+    idTweet=str(idTweet)
+    #Fem la captura
+    alcada=600
+    ruta='./temp/'+idTweet+'.png'
+    url="https://twitter.com/CARREROBLANCO/status/%s"%idTweet
+    os.system('xvfb-run cutycapt --url=%s --min-width=600 --min-height=%i --out=%s 2>&1 >/dev/null'%(url,alcada,ruta))
+    
+    try:
+        api.update_with_media(ruta,status='@%s'%tweetARespondre.user.screen_name,in_reply_to_status_id=tweetARespondre.id_str)
+    except Exception as e:
+        print(e)
+        print('No he pogut respondre al tweet')
+
+    os.remove(ruta)
+
+
 def baixaIResponTweet(tweetABaixar, tweetARespondre):
     #Fem la captura
     if not hasattr(tweetABaixar,'media') or tweetABaixar.media is None:
@@ -66,6 +83,7 @@ def respon_gatet(status):
 
 class ElMeuEscoltador(tweepy.StreamListener):
     def on_status(self, status):
+        '''FALTA REFACTORITZAR'''
         global api
         #Si té aquest atribut, vol dir que el tweet respon a gent no mencionada explícitament al tweet. Com que podria ser que el bot fos un d'ells, comprovem si ho és (si algú respon a un tweet del bot no hem de fer captura)
         if hasattr(status,'display_text_range'):
@@ -79,6 +97,7 @@ class ElMeuEscoltador(tweepy.StreamListener):
             status_replied=api.get_status(status.in_reply_to_status_id)
         except:
             respon_gatet(status)
+            return
         if not hasattr(status_replied,'quoted_status_id') or status_replied.quoted_status_id is None:
             if not hasattr(status_replied,'in_reply_to_status_id') or status_replied.in_reply_to_status_id is None:
                 #El tweet al que respon no cita ni respon a ningú. Com que hi ha respost, el veu, de manera que no cal captura
@@ -86,15 +105,30 @@ class ElMeuEscoltador(tweepy.StreamListener):
                 return
             try:
                 citat=api.get_status(status_replied.in_reply_to_status_id)
+                baixaIResponTweet(citat,status)
             except:
-                respon_gatet(status)
+                try:
+                    baixaIResponTweetB(status_replied.quoted_status_id,status)
+                    pass
+                except:
+                    respon_gatet(status)
+                return
         else:
             try:
                 citat=api.get_status(status_replied.quoted_status_id)
+                baixaIResponTweet(citat,status)
             except:
-                respon_gatet(status)
-        baixaIResponTweet(citat,status)
-
+                try:
+                    baixaIResponTweetB(status_replied.quoted_status_id,status)
+                    pass
+                except Exception as e:
+                    respon_gatet(status)
+                return
+    def on_data(self,data):
+        super().on_data(data)
+        if 'direct_message' in data:
+            print('MD :D')
+            print(data)
     def on_direct_message(self,status):
         print(status) #Falta implementar-ho. La idea és poder interactuar també per privat
         
