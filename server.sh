@@ -7,4 +7,5 @@ while :; do
 	date >>sortida.log
 	date >>errors.log
 	python3 bot.py >>sortida.log 2>>errors.log
+	sleep 10
 done

@@ -32,7 +32,6 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import tweepy
-import webscreenshot
 import os
 #Per executar el bot cal tenir un arxiu key.py que declari les quatre variables amb els tokens donats per Twitter
 from key import consumer_key, consumer_secret, access_token, access_token_secret
@@ -41,7 +40,10 @@ from key import consumer_key, consumer_secret, access_token, access_token_secret
 auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
 auth.set_access_token(access_token,access_token_secret)
 
-api=tweepy.API(auth)
+api=tweepy.API(auth, wait_on_rate_limit=True)
+
+
+jaCapturats=set()
 
 def baixaIResponTweetB(idTweet, tweetARespondre):
     idTweet=str(idTweet)
@@ -49,7 +51,7 @@ def baixaIResponTweetB(idTweet, tweetARespondre):
     alcada=600
     ruta='./temp/'+idTweet+'.png'
     url="https://twitter.com/CARREROBLANCO/status/%s"%idTweet
-    os.system('xvfb-run cutycapt --url=%s --min-width=600 --min-height=%i --out=%s 2>&1 >/dev/null'%(url,alcada,ruta))
+    os.system('xvfb-run cutycapt --url=%s --min-width=600 --min-height=%i --out=%s --delay=500 2>&1 >/dev/null'%(url,alcada,ruta))
     
     try:
         api.update_with_media(ruta,status='@%s'%tweetARespondre.user.screen_name,in_reply_to_status_id=tweetARespondre.id_str)
@@ -68,7 +70,7 @@ def baixaIResponTweet(tweetABaixar, tweetARespondre):
         alcada=1200
     ruta='./temp/'+tweetABaixar.id_str+'.png'
     url="https://twitter.com/%s/status/%s"%(tweetABaixar.user.screen_name,tweetABaixar.id_str)
-    os.system('xvfb-run cutycapt --url=%s --min-width=600 --min-height=%i --out=%s 2>&1 >/dev/null'%(url,alcada,ruta))
+    os.system('xvfb-run cutycapt --url=%s --min-width=600 --min-height=%i --out=%s --delay=1000 2>&1 >/dev/null'%(url,alcada,ruta))
     
     try:
         api.update_with_media(ruta,status='@%s'%tweetARespondre.user.screen_name,in_reply_to_status_id=tweetARespondre.id_str)
@@ -89,10 +91,16 @@ class ElMeuEscoltador(tweepy.StreamListener):
         if hasattr(status,'display_text_range'):
             if '@citatbot' not in status.text[status.display_text_range[0]:].lower():
                 return
+        if hasattr(status,'retweeted_status'):
+            return
         if status.in_reply_to_status_id is None:
             #Ni tan sols respon a ningú
             api.update_with_media('gat saludant.jpg',status='@%s Hola :D'%status.user.screen_name,in_reply_to_status_id=status.id_str)
             return
+        api.create_favorite(status.id)
+        if status.id_str in jaCapturats:
+            return
+        jaCapturats.add(status.id_str)
         try:
             status_replied=api.get_status(status.in_reply_to_status_id)
         except:
