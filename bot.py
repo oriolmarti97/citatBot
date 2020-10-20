@@ -44,6 +44,7 @@ api=tweepy.API(auth, wait_on_rate_limit=True)
 
 
 jaCapturats=set()
+delayCaptura=2000
 
 def baixaIResponTweetB(idTweet, tweetARespondre):
     idTweet=str(idTweet)
@@ -51,7 +52,7 @@ def baixaIResponTweetB(idTweet, tweetARespondre):
     alcada=600
     ruta='./temp/'+idTweet+'.png'
     url="https://twitter.com/CARREROBLANCO/status/%s"%idTweet
-    os.system('xvfb-run cutycapt --url=%s --min-width=600 --min-height=%i --out=%s --delay=500 2>&1 >/dev/null'%(url,alcada,ruta))
+    os.system(f'xvfb-run cutycapt --url={url} --min-width=600 --min-height={alcada} --out={ruta} --delay={delayCaptura} 2>&1 >/dev/null')
     
     try:
         api.update_with_media(ruta,status='@%s'%tweetARespondre.user.screen_name,in_reply_to_status_id=tweetARespondre.id_str)
@@ -70,7 +71,7 @@ def baixaIResponTweet(tweetABaixar, tweetARespondre):
         alcada=1200
     ruta='./temp/'+tweetABaixar.id_str+'.png'
     url="https://twitter.com/%s/status/%s"%(tweetABaixar.user.screen_name,tweetABaixar.id_str)
-    os.system('xvfb-run cutycapt --url=%s --min-width=600 --min-height=%i --out=%s --delay=1000 2>&1 >/dev/null'%(url,alcada,ruta))
+    os.system(f'xvfb-run cutycapt --url={url} --min-width=600 --min-height={alcada} --out={ruta} --delay={delayCaptura} 2>&1 >/dev/null')
     
     try:
         api.update_with_media(ruta,status='@%s'%tweetARespondre.user.screen_name,in_reply_to_status_id=tweetARespondre.id_str)
@@ -81,6 +82,7 @@ def baixaIResponTweet(tweetABaixar, tweetARespondre):
     os.remove(ruta)
 
 def respon_gatet(status):
+    print('Gatet')
     api.update_with_media('gat trist.jpg',status='@%s :('%status.user.screen_name,in_reply_to_status_id=status.id_str)
 
 class ElMeuEscoltador(tweepy.StreamListener):
@@ -103,7 +105,8 @@ class ElMeuEscoltador(tweepy.StreamListener):
         jaCapturats.add(status.id_str)
         try:
             status_replied=api.get_status(status.in_reply_to_status_id)
-        except:
+        except Exception as e:
+            print(e)
             respon_gatet(status)
             return
         if not hasattr(status_replied,'quoted_status_id') or status_replied.quoted_status_id is None:
@@ -117,8 +120,8 @@ class ElMeuEscoltador(tweepy.StreamListener):
             except:
                 try:
                     baixaIResponTweetB(status_replied.quoted_status_id,status)
-                    pass
-                except:
+                except Exception as e:
+                    print(e)
                     respon_gatet(status)
                 return
         else:
