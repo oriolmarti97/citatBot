@@ -35,6 +35,7 @@ import tweepy
 import os
 #Per executar el bot cal tenir un arxiu key.py que declari les quatre variables amb els tokens donats per Twitter
 from key import consumer_key, consumer_secret, access_token, access_token_secret
+import random
 
 
 auth = tweepy.OAuthHandler(consumer_key,consumer_secret)
@@ -89,6 +90,11 @@ class ElMeuEscoltador(tweepy.StreamListener):
     def on_status(self, status):
         '''FALTA REFACTORITZAR'''
         global api
+        serp = '\U0001F40D'
+        if (serp in status.user.name or serp in status.user.description) and random.randint(1,10)==1:
+            # Als serpientos, una de cada 10 vegades, se'ls respondrà amb un meme
+            api.update_with_media('serpiento.jpg',status='@%s'%status.user.screen_name,in_reply_to_status_id=status.id_str)
+            return
         #Si té aquest atribut, vol dir que el tweet respon a gent no mencionada explícitament al tweet. Com que podria ser que el bot fos un d'ells, comprovem si ho és (si algú respon a un tweet del bot no hem de fer captura)
         if hasattr(status,'display_text_range'):
             if '@citatbot' not in status.text[status.display_text_range[0]:].lower():
